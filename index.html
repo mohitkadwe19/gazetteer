@@ -134,14 +134,48 @@
             ></button>
           </div>
           <div class="modal-body">
-            <h4 id="txtHeadlineTitle">Weather</h4>
+            <!-- <h4 id="txtHeadlineTitle">Weather</h4>
             <span id="txtCapitalWeatherCurrent"></span>
             <span id="txtCapitalWeatherHi"></span>
             <span id="txtCapitalWeatherLo"></span>
             <br />
             <span id="txtCapitalWeatherForcast"></span>
             <span id="txtCapitalWeatherFHi"></span>
-            <span id="txtCapitalWeatherFLo"></span>
+            <span id="txtCapitalWeatherFLo"></span> -->
+
+            <div class="container">
+              <div class="location-not-found">
+                  <h1>Sorry, Location not found!!!</h1>
+                  <img src="assets/404.png" alt="404 Error">
+              </div>
+      
+              <div class="weather-body">
+                  <img src="assets/cloud.png" alt="Weather Image" class="weather-img">
+      
+                  <div class="weather-box">
+                      <p class="temperature">0 <sup>°C</sup></p>
+                      <p class="description">light rain</p>
+                  </div>
+      
+                  <div class="weather-details">
+                      <div class="humidity">
+                          <i class="fa-sharp fa-solid fa-droplet"></i>
+                          <div class="text">
+                              <span id="humidity">45%</span>
+                              <p>Humidity</p>
+                          </div>
+                      </div>
+      
+                      <div class="wind">
+                          <i class="fa-solid fa-wind"></i>
+                          <div class="text">
+                              <span id="wind-speed">12Km/H</span>
+                              <p>Wind Speed</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
           </div>
           <div class="modal-footer">
             <button
@@ -177,6 +211,23 @@
             <span id="txtCurrency"></span>
             <span id="txtCurrencyCode"></span>
             <span id="txtRate"></span>
+            <div class="row g-2 mt-2">
+              <div class="col-md">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="FromAmount" placeholder="1">
+                  <label for="floatingInputGrid" id="amountFrom">USD</label>
+                </div>
+              </div>
+              <div class="col-md">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="ToAmount" placeholder="1" readonly>
+                  <label for="floatingInputGrid" id="amountTo"></label>
+                </div>
+              </div>
+              <div class="form-group">
+                <button type="button" onclick="currencyExchange()" class="btn btn-outline-success btn-sm" id="btnConvert">Convert</button>
+              </div>
+            </div>            
           </div>
           <div class="modal-footer">
             <button
@@ -226,6 +277,39 @@
       </div>
     </div>
 
+    <div
+    id="exampleModal6"
+    class="modal"
+    data-bs-backdrop="false"
+    tabindex="-1"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content shadow">
+        <div class="modal-header bg-success bg-gradient text-white">
+          <h5 class="modal-title">Latest News</h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body" id="newsContainer">
+                  
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-outline-success btn-sm"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.8.0/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.6.1/toastify.min.js"></script>
@@ -240,7 +324,7 @@
     ></script>
 
     <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
-
+    <script src="https://kit.fontawesome.com/595a890311.js" crossorigin="anonymous"></script>
     <script src="./js/main.js"></script>
   </body>
 </html>
