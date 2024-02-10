@@ -47,6 +47,8 @@ let countryCode; // Variable to store country code
 // Create a feature group for storing circles on the map and add it to the map
 let myCircles = new L.featureGroup().addTo(map); // Create feature group for circles
 
+let markers = new L.MarkerClusterGroup();
+
 // Make an AJAX request to retrieve the list of countries
 $.ajax({
   url: "./php/geoJson.php", // API endpoint to fetch country data
@@ -510,6 +512,60 @@ L.easyButton("fa-book", function (btn, map) {
   });
 }).addTo(map); // Add easyButton to map
 
+L.easyButton("fa-newspaper", function (btn, map) {
+  // Show a modal with the ID "exampleModal2"
+  $("#exampleModal6").modal("show");
+
+  $.ajax({
+    url: "./php/restCountries.php",
+    type: "POST",
+    dataType: "json",
+    data: {
+      country: $("#countrySelect").val(),
+    },
+    success: function (result) {
+      // If the request is successful
+      if (result.status.name == "ok") {
+        // Extract the currency code, capital city weather, ISO 2 country code, and country name
+        currencyCode = Object.keys(result.data.currencies)[0];
+        capitalCityWeather = result.data.capital[0].toLowerCase();
+        iso2CountryCode = result.data.cca2;
+
+        $.ajax({
+          url: "./php/news.php",
+          type: "POST",
+          dataType: "json",
+          data: {
+            country: iso2CountryCode,
+          },
+          success: function (result) {
+            // If the request is successful
+            if (result.status.name == "ok") {
+              $("#newsContainer").html(
+                result.data.map((data) => {
+                  return `
+            <div class="card mt-2">
+              <div class="card-body">
+              <h5 class="card-title">${data.name}</h5>
+              <p class="card-text">${data.description}</p>
+              </div>
+            </div>`;
+                })
+              );
+            }
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            console.log(textStatus, errorThrown);
+          },
+        });
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.log(textStatus, errorThrown);
+    },
+  });
+}).addTo(map);
+
 // Function to get user's location and retrieve information from openCage API
 const successCallback = (position) => {
   // Send a GET request to openCage API using user's latitude and longitude
@@ -596,6 +652,32 @@ $("#countrySelect").on("change", function () {
           countryOptionTextArray.push(result.data.border.features[i]);
         }
       }
+      // find lat and long for the selected country
+      let lat =
+        typeof countryOptionTextArray[0].geometry.coordinates[0][0][1] ===
+        "number"
+          ? countryOptionTextArray[0].geometry.coordinates[0][0][1]
+          : countryOptionTextArray[0].geometry.coordinates[0][0][1][1];
+      let long =
+        typeof countryOptionTextArray[0].geometry.coordinates[0][0][0] ===
+        "number"
+          ? countryOptionTextArray[0].geometry.coordinates[0][0][0]
+          : countryOptionTextArray[0].geometry.coordinates[0][0][0][0];
+
+      if (!lat || !long) {
+        return;
+      } else {
+        // Remove existing markers layer if present
+        if (map.hasLayer(markers)) {
+          map.removeLayer(markers);
+        }
+
+        // Add a new markers layer for the selected country
+        markers.addLayer(L.marker([lat, long]));
+        // add more markers here...
+
+        map.addLayer(markers);
+      }
 
       // Add the country border to the map with specified styling
       border = L.geoJSON(countryOptionTextArray[0], {
@@ -663,12 +745,6 @@ const highlightUserCountry = (latitude, longitude) => {
 navigator.geolocation.getCurrentPosition((position) => {
   const { latitude, longitude } = position.coords;
   // Highlight the user's country on the map
-  var markers = new L.MarkerClusterGroup();
-
-  markers.addLayer(L.marker([latitude, longitude]));
-  // add more markers here...
-
-  map.addLayer(markers);
 
   highlightUserCountry(latitude, longitude);
 }, errorCallback);
