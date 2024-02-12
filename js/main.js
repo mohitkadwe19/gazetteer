@@ -548,6 +548,7 @@ L.easyButton("fa-newspaper", function (btn, map) {
               <div class="card-body">
               <h5 class="card-title">${data.name}</h5>
               <p class="card-text">${data.description}</p>
+              <a href="${data.url}" class="btn btn-primary" target="_blank">Read More</a>
               </div>
             </div>`;
                 })
@@ -653,31 +654,42 @@ $("#countrySelect").on("change", function () {
         }
       }
       // find lat and long for the selected country
-      let lat =
-        typeof countryOptionTextArray[0].geometry.coordinates[0][0][1] ===
-        "number"
-          ? countryOptionTextArray[0].geometry.coordinates[0][0][1]
-          : countryOptionTextArray[0].geometry.coordinates[0][0][1][1];
-      let long =
-        typeof countryOptionTextArray[0].geometry.coordinates[0][0][0] ===
-        "number"
-          ? countryOptionTextArray[0].geometry.coordinates[0][0][0]
-          : countryOptionTextArray[0].geometry.coordinates[0][0][0][0];
+      $.ajax({
+        url:
+          "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+          countryOptionText, // Wikipedia API endpoint URL
+        type: "GET", // HTTP GET method
+        dataType: "json", // Expected data type
+        success: function (resultWiki) {
+          // Success callback function
+          const lat = resultWiki.coordinates.lat;
+          const long = resultWiki.coordinates.lon;
 
-      if (!lat || !long) {
-        return;
-      } else {
-        // Remove existing markers layer if present
-        if (map.hasLayer(markers)) {
-          map.removeLayer(markers);
-        }
+          // Update the HTML with the Wikipedia summary and image
+          if (!lat || !long) {
+            return;
+          } else {
+            // Remove existing markers layer if present
+            if (map.hasLayer(markers)) {
+              map.removeLayer(markers);
+            }
 
-        // Add a new markers layer for the selected country
-        markers.addLayer(L.marker([lat, long]));
-        // add more markers here...
+            // Add a new markers layer for the selected country
+            markers.addLayer(L.marker([lat, long]));
+            // Create an empty marker cluster group
+            markers.bindPopup(`<b>${countryOptionText}</b>`);
 
-        map.addLayer(markers);
-      }
+            // add more markers here...
+
+            map.addLayer(markers);
+          }
+        },
+        // Log any errors from the Wikipedia API request
+        error: function (jqXHR, textStatus, errorThrown) {
+          // Error callback function
+          console.log(textStatus, errorThrown); // Log error
+        },
+      });
 
       // Add the country border to the map with specified styling
       border = L.geoJSON(countryOptionTextArray[0], {
