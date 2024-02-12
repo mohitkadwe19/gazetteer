@@ -748,3 +748,29 @@ navigator.geolocation.getCurrentPosition((position) => {
 
   highlightUserCountry(latitude, longitude);
 }, errorCallback);
+
+// Function to handle exchange rate requests
+function exchangeRateUSDToCurrentCurrency() {
+  // Send a GET request to the exchange rate API
+  $.ajax({
+    url: "./php/exchangeRates.php", // PHP endpoint URL
+    type: "GET", // HTTP GET method
+    dataType: "json", // Expected data type
+    success: function (result) {
+      // Success callback function
+      // If the request for exchange rates is successful
+      if (result.status.name == "ok") {
+        // If the request is successful
+        // Get the exchange rate for the selected currency
+        let currentRate = result.exchangeRate.rates[currencyCode]; // Get exchange rate for selected currency
+        const FromAmount = $("#FromAmount").val();
+        const ToAmount = (FromAmount * currentRate).toFixed(2);
+        $("#ToAmount").val(ToAmount);
+      }
+    },
+    // Handle error response from the exchange rate API
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.error(textStatus, errorThrown);
+    },
+  });
+}
