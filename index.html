@@ -195,6 +195,7 @@
                     class="form-control"
                     id="FromAmount"
                     placeholder="1"
+                    onkeyup="exchangeRateUSDToCurrentCurrency()"
                   />
                   <label for="floatingInputGrid" id="amountFrom">USD</label>
                 </div>
@@ -210,16 +211,6 @@
                   />
                   <label for="floatingInputGrid" id="amountTo"></label>
                 </div>
-              </div>
-              <div class="form-group">
-                <button
-                  type="button"
-                  onclick="currencyExchange()"
-                  class="btn btn-outline-success btn-sm"
-                  id="btnConvert"
-                >
-                  Convert
-                </button>
               </div>
             </div>
           </div>
