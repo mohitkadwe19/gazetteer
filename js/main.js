@@ -43,6 +43,7 @@ let capitalCityLon; // Variable to store capital city longitude
 let iso2CountryCode; // Variable to store ISO 2 country code
 let currencyRate; // Variable to store currency exchange rate
 let countryCode; // Variable to store country code
+let countryCodeISO; // Variable to store country code in ISO format
 
 // Create a feature group for storing circles on the map and add it to the map
 let myCircles = new L.featureGroup().addTo(map); // Create feature group for circles
@@ -594,7 +595,7 @@ const successCallback = (position) => {
 
       // Get the country code from the API response and set it as the selected value in the country select dropdown
       let currentCountry = result.data[0].components["ISO_3166-1_alpha-3"];
-
+      countryCodeISO = result.data[0].components["ISO_3166-1_alpha-2"];
       $("#countrySelect").val(currentCountry).change();
     },
     // Handle error response from openCage API
@@ -643,6 +644,7 @@ $("#countrySelect").on("change", function () {
       for (let i = 0; i < result.data.border.features.length; i++) {
         if (result.data.border.features[i].properties.iso_a3 === countryCode) {
           countryArray.push(result.data.border.features[i]);
+          countryCodeISO = result.data.border.features[i].properties.iso_a2;
         }
       }
       // Loop through the geoJSON data to find the border features based on the country name
@@ -666,16 +668,19 @@ $("#countrySelect").on("change", function () {
           const long = resultWiki.coordinates.lon;
 
           // Update the HTML with the Wikipedia summary and image
+          // check if layers are present
           if (!lat || !long) {
             return;
           } else {
             // Remove existing markers layer if present
-            if (map.hasLayer(markers)) {
-              map.removeLayer(markers);
-            }
+            markers.clearLayers();
 
+            const customIcon = L.icon({
+              iconUrl: resultWiki.thumbnail.source,
+              iconSize: [50, 50],
+            });
             // Add a new markers layer for the selected country
-            markers.addLayer(L.marker([lat, long]));
+            markers.addLayer(L.marker([lat, long], { icon: customIcon }));
             // Create an empty marker cluster group
             markers.bindPopup(`<b>${countryOptionText}</b>`);
 
@@ -683,6 +688,31 @@ $("#countrySelect").on("change", function () {
 
             map.addLayer(markers);
           }
+
+          const customIcon = L.icon({
+            iconUrl: "https://cdn-icons-png.flaticon.com/512/7893/7893979.png",
+            iconSize: [25, 41],
+          });
+
+          // Send a GET request to retrieve the top 100 airports for the selected country
+          $.ajax({
+            url: `http://api.geonames.org/wikipediaSearchJSON?formatted=true&q=airport&country=${countryCodeISO}&maxRows=100&username=flightltd&style=full`,
+            type: "GET",
+            dataType: "json",
+            success: function (resultWiki) {
+              for (let key of resultWiki.geonames) {
+                // Add a new markers layer for the selected country
+                markers.addLayer(
+                  L.marker([key.lat, key.lng], { icon: customIcon })
+                );
+                // Create an empty marker cluster group
+                markers.bindPopup(`<b>${key.title}</b>`);
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              console.log(textStatus, errorThrown);
+            },
+          });
         },
         // Log any errors from the Wikipedia API request
         error: function (jqXHR, textStatus, errorThrown) {
