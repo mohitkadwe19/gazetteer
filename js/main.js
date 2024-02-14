@@ -680,33 +680,82 @@ $("#countrySelect").on("change", function () {
               iconSize: [50, 50],
             });
             // Add a new markers layer for the selected country
-            markers.addLayer(L.marker([lat, long], { icon: customIcon }));
-            // Create an empty marker cluster group
-            markers.bindPopup(`<b>${countryOptionText}</b>`);
-
-            // add more markers here...
-
-            map.addLayer(markers);
+            let marker = L.marker([lat, long], {
+              icon: customIcon,
+              title: countryOptionText,
+            });
+            marker.bindPopup(`<b>${countryOptionText}</b>`);
+            markers.addLayer(marker);
           }
 
-          const customIcon = L.icon({
-            iconUrl: "https://cdn-icons-png.flaticon.com/512/7893/7893979.png",
+          const customIconAirport = L.icon({
+            iconUrl: "./css/images/air.png",
+            iconSize: [25, 41],
+          });
+
+          const customIconCity = L.icon({
+            iconUrl: "./css/images/city.png",
             iconSize: [25, 41],
           });
 
           // Send a GET request to retrieve the top 100 airports for the selected country
           $.ajax({
-            url: `http://api.geonames.org/wikipediaSearchJSON?formatted=true&q=airport&country=${countryCodeISO}&maxRows=100&username=flightltd&style=full`,
-            type: "GET",
+            url: `./php/wikipediaSearchJSONAirport.php`,
+            type: "POST",
             dataType: "json",
+            data: {
+              country: countryCodeISO,
+            },
             success: function (resultWiki) {
               for (let key of resultWiki.geonames) {
-                // Add a new markers layer for the selected country
-                markers.addLayer(
-                  L.marker([key.lat, key.lng], { icon: customIcon })
-                );
-                // Create an empty marker cluster group
-                markers.bindPopup(`<b>${key.title}</b>`);
+                if (
+                  key.feature !== "city" &&
+                  key.feature !== "country" &&
+                  key.feature !== "landmark" &&
+                  key.feature !== "adm1st" &&
+                  key.feature !== "isle" &&
+                  key.feature !== undefined
+                ) {
+                  // Add a new markers layer for the selected country
+                  let marker = L.marker([key.lat, key.lng], {
+                    icon: customIconAirport,
+                    title: key.title,
+                  });
+                  marker.bindPopup(`<b>${key.title}</b>`);
+                  markers.addLayer(marker);
+                }
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              console.log(textStatus, errorThrown);
+            },
+          });
+
+          $.ajax({
+            url: `./php/wikipediaSearchJSONCity.php`,
+            type: "POST",
+            dataType: "json",
+            data: {
+              country: countryCodeISO,
+            },
+            success: function (resultWiki) {
+              for (let key of resultWiki.geonames) {
+                if (
+                  key.feature !== "airport" &&
+                  key.feature !== "country" &&
+                  key.feature !== "landmark" &&
+                  key.feature !== "adm1st" &&
+                  key.feature !== "isle" &&
+                  key.feature !== undefined
+                ) {
+                  // Add a new markers layer for the selected country
+                  let marker = L.marker([key.lat, key.lng], {
+                    icon: customIconCity,
+                    title: key.title,
+                  });
+                  marker.bindPopup(`<b>${key.title}</b>`);
+                  markers.addLayer(marker);
+                }
               }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -728,6 +777,7 @@ $("#countrySelect").on("change", function () {
         opacity: 0.75,
       }).addTo(map);
       let bounds = border.getBounds();
+      map.addLayer(markers);
       // Fly to the bounds of the country border on the map with animation
       map.flyToBounds(bounds, {
         padding: [35, 35],
