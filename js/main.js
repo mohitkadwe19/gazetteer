@@ -31,7 +31,43 @@ let map = L.map("map", {
 }).setView([54.5, -4], 6); // Set initial view to coordinates [54.5, -4] with zoom level 6
 
 // Add a layer control to allow switching between streets and satellite imagery tile layers
-let layerControl = L.control.layers(basemaps).addTo(map); // Add layer control with basemaps to the map
+var airports = L.markerClusterGroup({
+  polygonOptions: {
+    fillColor: "#fff",
+    color: "#000",
+    weight: 2,
+    opacity: 1,
+    fillOpacity: 0.5,
+  },
+}).addTo(map);
+
+var cities = L.markerClusterGroup({
+  polygonOptions: {
+    fillColor: "#fff",
+    color: "#000",
+    weight: 2,
+    opacity: 1,
+    fillOpacity: 0.5,
+  },
+}).addTo(map);
+
+var overlays = {
+  Airports: airports,
+  Cities: cities,
+};
+
+// Add layer control with basemaps to the map
+var layerControl = L.control.layers(basemaps, overlays).addTo(map);
+
+var airportIcon = L.icon({
+  iconUrl: "./css/images/air.png",
+  iconSize: [25, 41],
+});
+
+var cityIcon = L.icon({
+  iconUrl: "./css/images/city.png",
+  iconSize: [25, 41],
+});
 
 // Initialize variables for storing data related to a country
 let border; // Variable to store country border
@@ -102,7 +138,7 @@ L.easyButton("fa-home", function (btn, map) {
       // If the AJAX request is successful
       if (result.status.name == "ok") {
         // Extract currency code, capital city weather, and ISO2 country code from the result
-        currencyCode = Object.keys(result.data.currencies)[0]; // Extract currency code
+        currencyCode = Object.keys(result?.data?.currencies)[0]; // Extract currency code
         capitalCityWeather = result.data.capital[0].toLowerCase(); // Extract capital city weather
         iso2CountryCode = result.data.cca2; // Extract ISO2 country code
         countryCode = result.data.cca2; // Assign country code
@@ -157,7 +193,7 @@ L.easyButton("fa-globe", function (btn, map) {
       // If the request is successful
       if (result.status.name == "ok") {
         // Extract the currency code, capital city weather, ISO 2 country code, and country name
-        currencyCode = Object.keys(result.data.currencies)[0]; // Extract currency code
+        currencyCode = Object.keys(result?.data?.currencies)[0]; // Extract currency code
         capitalCityWeather = result.data.capital[0].toLowerCase(); // Extract capital city weather
         iso2CountryCode = result.data.cca2; // Extract ISO2 country code
         let countryName2 = result.data.name.common; // Get country name
@@ -245,7 +281,7 @@ L.easyButton("fa-cloud", function (btn, map) {
       // Success callback function
       if (result.status.name == "ok") {
         // Get the currency code from the returned data
-        currencyCode = Object.keys(result.data.currencies)[0]; // Extract currency code
+        currencyCode = Object.keys(result?.data?.currencies)[0]; // Extract currency code
         // Get the lowercase capital city weather from the returned data
         capitalCityWeather = result.data.capital[0].toLowerCase(); // Extract capital city weather
         // Get the ISO2 country code from the returned data
@@ -254,6 +290,7 @@ L.easyButton("fa-cloud", function (btn, map) {
         let countryName2 = result.data.name.common; // Get country name
         countryName = countryName2.replace(/\s+/g, "_"); // Replace spaces with underscores
         // Send a POST request to ./php/openWeatherCurrent.php for current weather data
+        $("weather_modal_title").html(result.data.capital[0]);
         $.ajax({
           url: "./php/openWeatherCurrent.php", // PHP endpoint URL
           type: "POST", // HTTP POST method
@@ -375,21 +412,13 @@ L.easyButton("fa-landmark", function (btn, map) {
       // If the request is successful
       if (result.status.name == "ok") {
         // Extract currency code, capital city, and ISO 2 country code from the result
-        currencyCode = Object.keys(result.data.currencies)[0]; // Extract currency code
+        currencyCode = Object.keys(result?.data?.currencies)[0]; // Extract currency code
         capitalCityWeather = result.data.capital[0].toLowerCase(); // Extract lowercase capital city weather
         iso2CountryCode = result.data.cca2; // Extract ISO2 country code
         let countryName2 = result.data.name.common; // Get country name
         countryName = countryName2.replace(/\s+/g, "_"); // Replace spaces with underscores
         // Update UI elements with country information
         $("#txtName").html(result["data"]["name"].common + "<br>"); // Update HTML for country name
-        $("#txtCurrency").html(
-          // Update HTML for currency
-          "<strong> " + result.currency.name + "</strong><br>"
-        );
-        $("#txtCurrencyCode").html(
-          // Update HTML for currency code
-          "Code: <strong>" + result.currency.symbol + "</strong><br>"
-        );
         document.getElementById("amountTo").innerText = result.currency.name; // Update amount to currency
         // Make an AJAX request to the "./php/exchangeRates.php" endpoint
         $.ajax({
@@ -403,15 +432,9 @@ L.easyButton("fa-landmark", function (btn, map) {
               // Get the exchange rate for the selected currency and update the UI
               exchangeRate =
                 exchangeRatesResult.exchangeRate.rates[currencyCode]; // Get exchange rate for selected currency
-              $("#txtRate").html(
-                // Update HTML for exchange rate
-                "Rate: <strong>" +
-                  exchangeRate.toFixed(3) +
-                  "</strong> " +
-                  currencyCode +
-                  " to <strong>1</strong> USD. <br>"
-              );
               currencyRate = exchangeRate; // Assign exchange rate to currencyRate variable
+              $("#FromAmount").val(1);
+              $("#ToAmount").val(currencyRate.toFixed(3));
             }
           },
           // Handle errors for the exchange rate request
@@ -446,7 +469,7 @@ L.easyButton("fa-book", function (btn, map) {
       // Success callback function
       if (result.status.name == "ok") {
         // Get currency code, capital city weather, iso2 country code, and formatted country name
-        currencyCode = Object.keys(result.data.currencies)[0]; // Extract currency code
+        currencyCode = Object.keys(result?.data?.currencies)[0]; // Extract currency code
         capitalCityWeather = result.data.capital[0].toLowerCase(); // Extract lowercase capital city weather
         iso2CountryCode = result.data.cca2; // Extract ISO2 country code
         let countryName2 = result.data.name.common; // Get country name
@@ -530,7 +553,7 @@ L.easyButton("fa-newspaper", function (btn, map) {
       // If the request is successful
       if (result.status.name == "ok") {
         // Extract the currency code, capital city weather, ISO 2 country code, and country name
-        currencyCode = Object.keys(result.data.currencies)[0];
+        currencyCode = Object.keys(result?.data?.currencies)[0];
         capitalCityWeather = result.data.capital[0].toLowerCase();
         iso2CountryCode = result.data.cca2;
 
