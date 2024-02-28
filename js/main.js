@@ -30,7 +30,7 @@ let map = L.map("map", {
   layers: [streets], // Add streets tile layer as the initial layer
 }).setView([54.5, -4], 6); // Set initial view to coordinates [54.5, -4] with zoom level 6
 
-// Add a layer control to allow switching between streets and satellite imagery tile layers
+// Initialize marker cluster groups for airports and cities
 var airports = L.markerClusterGroup({
   polygonOptions: {
     fillColor: "#fff",
@@ -39,7 +39,7 @@ var airports = L.markerClusterGroup({
     opacity: 1,
     fillOpacity: 0.5,
   },
-}).addTo(map);
+});
 
 var cities = L.markerClusterGroup({
   polygonOptions: {
@@ -49,7 +49,11 @@ var cities = L.markerClusterGroup({
     opacity: 1,
     fillOpacity: 0.5,
   },
-}).addTo(map);
+});
+
+// Add airports and cities marker cluster groups to the map
+map.addLayer(airports);
+map.addLayer(cities);
 
 var overlays = {
   Airports: airports,
@@ -210,43 +214,84 @@ L.easyButton("fa-globe", function (btn, map) {
             // Success callback function
             // If the request is successful
             if (getCountryInfo.status.name == "ok") {
+              console.log(getCountryInfo.data.geonames[0]);
               // Update the HTML elements with the retrieved country information
-              $("#txtCapital").html(
-                // Update HTML for capital city
-                "Capital: <p>" +
-                  getCountryInfo.data.geonames[0].capital +
-                  "</p>"
-              );
-              // Update other HTML elements with the retrieved country information
-              $("#txtCapital2").html(
-                "<p>" +
-                  getCountryInfo.data.geonames[0].capital +
-                  "'s Weather</p>"
-              );
-              $("#txtAreaInSqKm").html(
-                // Update HTML for area in square kilometers
-                "Area: <p>" +
-                  getCountryInfo.data.geonames[0].areaInSqKm +
-                  "</p> km²"
-              );
-              $("#txtContinent").html(
-                // Update HTML for continent
-                "Continent: <p>" +
-                  getCountryInfo.data.geonames[0].continent +
-                  "</p>"
-              );
-              $("#txtPopulation").html(
-                // Update HTML for population
-                "Population: <p>" +
-                  getCountryInfo.data.geonames[0].population +
-                  "</p>"
-              );
-              $("#txtLanguages").html(
-                // Update HTML for languages
-                "Languages: <p>" +
-                  getCountryInfo.data.geonames[0].languages +
-                  "</p>"
-              );
+              $("#general_information").html(`
+              <table class="table table-striped">
+              <tr>
+                <td class="text-center col-2">
+                  <i class="fa-solid fa-landmark-flag fa-xl text-success"></i>
+                </td>
+
+                <td class="text-nowrap">Capital city</td>
+
+                <td id="capitalCity" class="text-end">${getCountryInfo.data.geonames[0].capital}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-globe fa-xl text-success"></i>
+                </td>
+
+                <td>Continent</td>
+
+                <td id="continent" class="text-end">${getCountryInfo.data.geonames[0].continent}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-ear-listen fa-xl text-success"></i>
+                </td>
+
+                <td>Languages</td>
+
+                <td id="languages" class="text-end">${getCountryInfo.data.geonames[0].languages}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-coins fa-xl text-success"></i>
+                </td>
+
+                <td>Currency</td>
+
+                <td id="currency" class="text-end">${getCountryInfo.data.geonames[0].currencyCode}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-bars fa-xl text-success"></i>
+                </td>
+
+                <td class="text-nowrap">ISO alpha 3</td>
+
+                <td id="isoAlpha3" class="text-end">${getCountryInfo.data.geonames[0].isoAlpha3}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-person fa-xl text-success"></i>
+                </td>
+
+                <td>Population</td>
+
+                <td id="population" class="text-end">${getCountryInfo.data.geonames[0].population}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-ruler-combined fa-xl text-success"></i>
+                </td>
+
+                <td class="text-nowrap">Area (km<sup>2</sup>)</td>
+
+                <td id="areaInSqKm" class="text-end">${getCountryInfo.data.geonames[0].areaInSqKm}</td>
+              </tr>
+              <tr>
+                <td class="text-center">
+                  <i class="fa-solid fa-envelope fa-xl text-success"></i>
+                </td>
+
+                <td class="text-nowrap">Postal code format</td>
+
+                <td id="postalCodeFormat" class="text-end">${getCountryInfo.data.geonames[0].postalCodeFormat}</td>
+              </tr>
+            </table>
+              `);
             }
           },
           error: function (jqXHR, textStatus, errorThrown) {
@@ -290,7 +335,7 @@ L.easyButton("fa-cloud", function (btn, map) {
         let countryName2 = result.data.name.common; // Get country name
         countryName = countryName2.replace(/\s+/g, "_"); // Replace spaces with underscores
         // Send a POST request to ./php/openWeatherCurrent.php for current weather data
-        $("weather_modal_title").html(result.data.capital[0]);
+        $("#weather_modal_title").html(result.data.capital[0]);
         $.ajax({
           url: "./php/openWeatherCurrent.php", // PHP endpoint URL
           type: "POST", // HTTP POST method
@@ -572,9 +617,8 @@ L.easyButton("fa-newspaper", function (btn, map) {
                   return `
             <div class="card mt-2">
               <div class="card-body">
-              <h5 class="card-title">${data.name}</h5>
+              <h5 class="card-title"><a href="${data.url}" class="headline" target="_blank">${data.name} </a></h5>
               <p class="card-text">${data.description}</p>
-              <a href="${data.url}" class="btn btn-primary" target="_blank">Read More</a>
               </div>
             </div>`;
                 })
