@@ -157,3 +157,7 @@ html, body {
 .location-not-found img{
   width: 80%;
 }
+
+.headline{
+  color: #000;
+}
