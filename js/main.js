@@ -85,6 +85,8 @@ let currencyRate; // Variable to store currency exchange rate
 let countryCode; // Variable to store country code
 let countryCodeISO; // Variable to store country code in ISO format
 let basecountryArray = []; // Array to store country border data
+let airportMarkers = []; // Array to store airport markers
+let cityMarkers = []; // Array to store city markers
 
 // Create a feature group for storing circles on the map and add it to the map
 let myCircles = new L.featureGroup().addTo(map); // Create feature group for circles
@@ -151,18 +153,20 @@ L.easyButton("fa-home", function (btn, map) {
         countryName = countryName2.replace(/\s+/g, "_"); // Replace spaces with underscores
         // Make a second AJAX request to the Wikipedia API for country summary
         $.ajax({
-          url:
-            "https://en.wikipedia.org/api/rest_v1/page/summary/" + countryName, // Wikipedia API endpoint URL
-          type: "GET", // HTTP GET method
+          url: "./php/wikipedia.php", // Wikipedia API endpoint URL
+          type: "POST", // HTTP GET method
           dataType: "json", // Expected data type
+          data: {
+            country: countryName, // Data to be sent (country name)
+          },
           success: function (result) {
             // Success callback function
             // Update the HTML with the Wikipedia summary and image
             $("#txtWikiImg").html(
               // Update HTML for Wikipedia image
-              "<img src=" + result.thumbnail.source + "><br>"
+              "<img src=" + result.data.thumbnail.source + "><br>"
             );
-            $("#txtWiki").html(result.extract_html + "<br>"); // Update HTML for Wikipedia summary
+            $("#txtWiki").html(result.data.extract_html + "<br>"); // Update HTML for Wikipedia summary
           },
           // Log any errors from the Wikipedia API request
           error: function (jqXHR, textStatus, errorThrown) {
@@ -214,7 +218,6 @@ L.easyButton("fa-globe", function (btn, map) {
             // Success callback function
             // If the request is successful
             if (getCountryInfo.status.name == "ok") {
-              console.log(getCountryInfo.data.geonames[0]);
               // Update the HTML elements with the retrieved country information
               $("#general_information").html(`
               <table class="table table-striped">
@@ -682,6 +685,101 @@ const errorCallback = (error) => {
 // Retrieve user's location using geolocation API and handle success or error using corresponding functions
 navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
 
+// Define layer groups for airports and cities
+let airportLayerGroup = L.layerGroup();
+let cityLayerGroup = L.layerGroup();
+
+// Function to add airport markers to the airport layer group
+function addAirportMarkers(countryCode) {
+  $.ajax({
+    url: "./php/wikipediaSearchJSONAirport.php",
+    type: "POST",
+    dataType: "json",
+    data: {
+      country: countryCode,
+    },
+    success: function (result) {
+      if (result.status.code == 200) {
+        result.geonames.forEach(function (item) {
+          if (
+            item.feature !== "city" &&
+            item.feature !== "country" &&
+            item.feature !== "landmark" &&
+            item.feature !== "adm1st" &&
+            item.feature !== "isle" &&
+            item.feature !== undefined
+          ) {
+            var marker = L.marker([item.lat, item.lng], {
+              icon: airportIcon,
+            }).bindTooltip(item.title, { direction: "top", sticky: true });
+            airportLayerGroup.addLayer(marker); // Add marker to airport layer group
+          }
+        });
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.log("Airports - server error", error);
+    },
+  });
+}
+
+// Function to add city markers to the city layer group
+function addCityMarkers(countryCode) {
+  $.ajax({
+    url: "./php/wikipediaSearchJSONCity.php",
+    type: "POST",
+    dataType: "json",
+    data: {
+      country: countryCode,
+    },
+    success: function (result) {
+      if (result.status.code == 200) {
+        result.geonames.forEach(function (item) {
+          if (
+            item.feature !== "airport" &&
+            item.feature !== "country" &&
+            item.feature !== "landmark" &&
+            item.feature !== "adm1st" &&
+            item.feature !== "isle" &&
+            item.feature !== undefined
+          ) {
+            var marker = L.marker([item.lat, item.lng], {
+              icon: cityIcon,
+            }).bindTooltip(
+              "<div class='col text-center'><strong>" + item.title,
+              {
+                direction: "top",
+                sticky: true,
+              }
+            );
+            cityLayerGroup.addLayer(marker); // Add marker to city layer group
+          }
+        });
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.error("Cities - Error:", errorThrown);
+    },
+  });
+}
+
+// Event listener for overlay add/remove
+map.on("overlayadd", function (eventLayer) {
+  if (eventLayer.name === "Airports") {
+    airportLayerGroup.addTo(map); // Add airport layer group to the map
+  } else if (eventLayer.name === "Cities") {
+    cityLayerGroup.addTo(map); // Add city layer group to the map
+  }
+});
+
+map.on("overlayremove", function (eventLayer) {
+  if (eventLayer.name === "Airports") {
+    map.removeLayer(airportLayerGroup); // Remove airport layer group from the map
+  } else if (eventLayer.name === "Cities") {
+    map.removeLayer(cityLayerGroup); // Remove city layer group from the map
+  }
+});
+
 // Event listener for change in country select dropdown
 $("#countrySelect").on("change", function () {
   // Get the selected country code from the dropdown
@@ -739,7 +837,8 @@ $("#countrySelect").on("change", function () {
         return;
       } else {
         // Remove existing markers layer if present
-        markers.clearLayers();
+        airportLayerGroup.clearLayers(); // Clear airport layer group
+        cityLayerGroup.clearLayers(); // Clear city layer group
 
         const customIcon = L.icon({
           iconUrl: resultWiki.thumbnail.source,
@@ -751,83 +850,10 @@ $("#countrySelect").on("change", function () {
           title: countryOptionText,
         });
         marker.bindPopup(`<b>${countryOptionText}</b>`);
-        markers.addLayer(marker);
+        airportLayerGroup.addLayer(marker); // Add marker to airport layer group
       }
-
-      const customIconAirport = L.icon({
-        iconUrl: "./css/images/air.png",
-        iconSize: [25, 41],
-      });
-
-      const customIconCity = L.icon({
-        iconUrl: "./css/images/city.png",
-        iconSize: [25, 41],
-      });
-
-      // Send a GET request to retrieve the top 100 airports for the selected country
-      $.ajax({
-        url: `./php/wikipediaSearchJSONAirport.php`,
-        type: "POST",
-        dataType: "json",
-        data: {
-          country: countryCodeISO,
-        },
-        success: function (resultWiki) {
-          for (let key of resultWiki.geonames) {
-            if (
-              key.feature !== "city" &&
-              key.feature !== "country" &&
-              key.feature !== "landmark" &&
-              key.feature !== "adm1st" &&
-              key.feature !== "isle" &&
-              key.feature !== undefined
-            ) {
-              // Add a new markers layer for the selected country
-              let marker = L.marker([key.lat, key.lng], {
-                icon: customIconAirport,
-                title: key.title,
-              });
-              marker.bindPopup(`<b>${key.title}</b>`);
-              markers.addLayer(marker);
-            }
-          }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        },
-      });
-
-      $.ajax({
-        url: `./php/wikipediaSearchJSONCity.php`,
-        type: "POST",
-        dataType: "json",
-        data: {
-          country: countryCodeISO,
-        },
-        success: function (resultWiki) {
-          for (let key of resultWiki.geonames) {
-            if (
-              key.feature !== "airport" &&
-              key.feature !== "country" &&
-              key.feature !== "landmark" &&
-              key.feature !== "adm1st" &&
-              key.feature !== "isle" &&
-              key.feature !== undefined
-            ) {
-              // Add a new markers layer for the selected country
-              let marker = L.marker([key.lat, key.lng], {
-                icon: customIconCity,
-                title: key.title,
-              });
-              marker.bindPopup(`<b>${key.title}</b>`);
-              markers.addLayer(marker);
-            }
-          }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-          console.log(textStatus, errorThrown);
-        },
-      });
+      addCityMarkers(countryCodeISO);
+      addAirportMarkers(countryCodeISO);
     },
     // Log any errors from the Wikipedia API request
     error: function (jqXHR, textStatus, errorThrown) {
@@ -843,7 +869,8 @@ $("#countrySelect").on("change", function () {
     opacity: 0.75,
   }).addTo(map);
   let bounds = border.getBounds();
-  map.addLayer(markers);
+  map.addLayer(airportLayerGroup); // Add airport layer group to the map
+  map.addLayer(cityLayerGroup); // Add city layer group to the map
   // Fly to the bounds of the country border on the map with animation
   map.flyToBounds(bounds, {
     padding: [35, 35],
