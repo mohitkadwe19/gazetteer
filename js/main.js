@@ -69,8 +69,8 @@ var airportIcon = L.icon({
 });
 
 var cityIcon = L.icon({
-  iconUrl: "./css/images/city.png",
-  iconSize: [25, 41],
+  iconUrl: "./css/images/city1.png",
+  iconSize: [25, 25],
 });
 
 // Initialize variables for storing data related to a country
