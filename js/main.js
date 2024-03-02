@@ -374,19 +374,19 @@ L.easyButton("fa-cloud", function (btn, map) {
                 result.weatherData.weather[0].main // Switch based on weather main
               ) {
                 case "Clouds":
-                  weather_img.src = "assets/cloud.png"; // Update weather image for clouds
+                  weather_img.src = "assets/Clouds.png"; // Update weather image for clouds
                   break;
                 case "Clear":
-                  weather_img.src = "assets/clear.png"; // Update weather image for clear sky
+                  weather_img.src = "assets/Clear.png"; // Update weather image for clear sky
                   break;
                 case "Rain":
-                  weather_img.src = "assets/rain.png"; // Update weather image for rain
+                  weather_img.src = "assets/Rain.png"; // Update weather image for rain
                   break;
                 case "Mist":
-                  weather_img.src = "assets/mist.png"; // Update weather image for mist
+                  weather_img.src = "assets/Mist.png"; // Update weather image for mist
                   break;
                 case "Snow":
-                  weather_img.src = "assets/snow.png"; // Update weather image for snow
+                  weather_img.src = "assets/Snow.png"; // Update weather image for snow
                   break;
               }
               // Send a GET request to ./php/openWeatherForcast.php for weather forecast data
@@ -402,24 +402,36 @@ L.easyButton("fa-cloud", function (btn, map) {
                   // Success callback function
                   if (result.status.name == "ok") {
                     // Update the HTML elements with weather forecast data for tomorrow
-                    $("#txtCapitalWeatherForcast").html(
-                      // Update HTML for weather forecast
-                      "Tomorrow :" +
-                        result.weatherForcast.daily[1].weather[0].description +
-                        "<br>"
-                    );
-                    $("#txtCapitalWeatherFHi").html(
-                      // Update HTML for weather forecast high temperature
-                      "Expected High : " +
-                        result.weatherForcast.daily[1].temp.max +
-                        "&#8451<br>"
-                    );
-                    $("#txtCapitalWeatherFLo").html(
-                      // Update HTML for weather forecast low temperature
-                      "Expected Low : " +
-                        result.weatherForcast.daily[1].temp.min +
-                        "&#8451<br>"
-                    );
+                    $(".weather-forcast").html(`
+                    <div class="row mt-5">
+                    <div class="col-6">
+                      <p>Tomorrow</p>
+                      <img src="assets/${result.weatherForcast.daily[1].weather[0].main.toLowerCase()}.png" alt="weather icon" class="weather-icon">
+                      <p class="weather-description mt-2">${
+                        result.weatherForcast.daily[1].weather[0].description
+                      }</p>
+                      <p class="weather-temp">High: ${
+                        result.weatherForcast.daily[1].temp.max
+                      }°C</p>
+                      <p class="weather-temp">Low: ${
+                        result.weatherForcast.daily[1].temp.min
+                      }°C</p>
+                    </div>
+                    <div class="col-6">
+                      <p>Day After Tomorrow</p>
+                      <img src="assets/${result.weatherForcast.daily[2].weather[0].main.toLowerCase()}.png" alt="weather icon" class="weather-icon">
+                      <p class="weather-description mt-2">${
+                        result.weatherForcast.daily[2].weather[0].description
+                      }</p>
+                      <p class="weather-temp">High: ${
+                        result.weatherForcast.daily[2].temp.max
+                      }°C</p>
+                      <p class="weather-temp">Low: ${
+                        result.weatherForcast.daily[2].temp.min
+                      }°C</p>
+                    </div>
+                    </div>
+                    `);
                   }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
@@ -711,8 +723,11 @@ function addAirportMarkers(countryCode) {
           ) {
             var marker = L.marker([item.lat, item.lng], {
               icon: airportIcon,
-            }).bindTooltip(item.title, { direction: "top", sticky: true });
+            });
+            marker.bindPopup(`<b>${item.title}</b>`);
             airportLayerGroup.addLayer(marker); // Add marker to airport layer group
+            markers.addLayer(marker);
+            markers.addTo(map);
           }
         });
       }
@@ -745,14 +760,11 @@ function addCityMarkers(countryCode) {
           ) {
             var marker = L.marker([item.lat, item.lng], {
               icon: cityIcon,
-            }).bindTooltip(
-              "<div class='col text-center'><strong>" + item.title,
-              {
-                direction: "top",
-                sticky: true,
-              }
-            );
+            });
+            marker.bindPopup(`<b>${item.title}</b>`);
             cityLayerGroup.addLayer(marker); // Add marker to city layer group
+            markers.addLayer(marker);
+            markers.addTo(map);
           }
         });
       }
@@ -851,6 +863,10 @@ $("#countrySelect").on("change", function () {
         });
         marker.bindPopup(`<b>${countryOptionText}</b>`);
         airportLayerGroup.addLayer(marker); // Add marker to airport layer group
+        markers.clearLayers(); // Clear markers layer
+        map.removeLayer(airportLayerGroup); // Remove airport layer group from the map
+        map.removeLayer(cityLayerGroup); // Remove city layer group from the map
+        map.removeLayer(markers); // Remove markers layer from the map
       }
       addCityMarkers(countryCodeISO);
       addAirportMarkers(countryCodeISO);
