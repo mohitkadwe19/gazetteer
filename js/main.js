@@ -39,7 +39,7 @@ var airports = L.markerClusterGroup({
     opacity: 1,
     fillOpacity: 0.5,
   },
-});
+}).addTo(map);
 
 var cities = L.markerClusterGroup({
   polygonOptions: {
@@ -49,11 +49,7 @@ var cities = L.markerClusterGroup({
     opacity: 1,
     fillOpacity: 0.5,
   },
-});
-
-// Add airports and cities marker cluster groups to the map
-map.addLayer(airports);
-map.addLayer(cities);
+}).addTo(map);
 
 var overlays = {
   Airports: airports,
@@ -88,15 +84,10 @@ let basecountryArray = []; // Array to store country border data
 let airportMarkers = []; // Array to store airport markers
 let cityMarkers = []; // Array to store city markers
 
-// Create a feature group for storing circles on the map and add it to the map
-let myCircles = new L.featureGroup().addTo(map); // Create feature group for circles
-
-let markers = new L.MarkerClusterGroup();
-
 // Make an AJAX request to retrieve the list of countries
 $.ajax({
   url: "./php/geoJson.php", // API endpoint to fetch country data
-  type: "POST", // HTTP method used for the request
+  type: "GET", // HTTP method used for the request
   dataType: "json", // The expected data type of the response
 
   success: function (result) {
@@ -721,19 +712,15 @@ function addAirportMarkers(countryCode) {
             item.feature !== "isle" &&
             item.feature !== undefined
           ) {
-            var marker = L.marker([item.lat, item.lng], {
-              icon: airportIcon,
-            });
-            marker.bindPopup(`<b>${item.title}</b>`);
-            airportLayerGroup.addLayer(marker); // Add marker to airport layer group
-            markers.addLayer(marker);
-            markers.addTo(map);
+            L.marker([item.lat, item.lng], { icon: airportIcon })
+              .bindTooltip(item.title, { direction: "top", sticky: true })
+              .addTo(airportLayerGroup);
           }
         });
       }
     },
     error: function (jqXHR, textStatus, errorThrown) {
-      console.log("Airports - server error", error);
+      console.log("Airports - server error", textStatus, errorThrown);
     },
   });
 }
@@ -758,13 +745,10 @@ function addCityMarkers(countryCode) {
             item.feature !== "isle" &&
             item.feature !== undefined
           ) {
-            var marker = L.marker([item.lat, item.lng], {
-              icon: cityIcon,
-            });
-            marker.bindPopup(`<b>${item.title}</b>`);
-            cityLayerGroup.addLayer(marker); // Add marker to city layer group
-            markers.addLayer(marker);
-            markers.addTo(map);
+            L.marker([item.lat, item.lng], { icon: cityIcon })
+              .bindTooltip(item.title, { direction: "top", sticky: true })
+              .addTo(cityLayerGroup);
+            map.addLayer(cityLayerGroup);
           }
         });
       }
@@ -851,22 +835,6 @@ $("#countrySelect").on("change", function () {
         // Remove existing markers layer if present
         airportLayerGroup.clearLayers(); // Clear airport layer group
         cityLayerGroup.clearLayers(); // Clear city layer group
-
-        const customIcon = L.icon({
-          iconUrl: resultWiki.thumbnail.source,
-          iconSize: [50, 50],
-        });
-        // Add a new markers layer for the selected country
-        let marker = L.marker([lat, long], {
-          icon: customIcon,
-          title: countryOptionText,
-        });
-        marker.bindPopup(`<b>${countryOptionText}</b>`);
-        airportLayerGroup.addLayer(marker); // Add marker to airport layer group
-        markers.clearLayers(); // Clear markers layer
-        map.removeLayer(airportLayerGroup); // Remove airport layer group from the map
-        map.removeLayer(cityLayerGroup); // Remove city layer group from the map
-        map.removeLayer(markers); // Remove markers layer from the map
       }
       addCityMarkers(countryCodeISO);
       addAirportMarkers(countryCodeISO);
