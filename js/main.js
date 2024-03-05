@@ -401,12 +401,6 @@ L.easyButton("fa-cloud", function (btn, map) {
                       <p class="weather-description mt-2">${
                         result.weatherForcast.daily[1].weather[0].description
                       }</p>
-                      <p class="weather-temp">High: ${
-                        result.weatherForcast.daily[1].temp.max
-                      }°C</p>
-                      <p class="weather-temp">Low: ${
-                        result.weatherForcast.daily[1].temp.min
-                      }°C</p>
                     </div>
                     <div class="col-6">
                       <p>Day After Tomorrow</p>
@@ -414,12 +408,6 @@ L.easyButton("fa-cloud", function (btn, map) {
                       <p class="weather-description mt-2">${
                         result.weatherForcast.daily[2].weather[0].description
                       }</p>
-                      <p class="weather-temp">High: ${
-                        result.weatherForcast.daily[2].temp.max
-                      }°C</p>
-                      <p class="weather-temp">Low: ${
-                        result.weatherForcast.daily[2].temp.min
-                      }°C</p>
                     </div>
                     </div>
                     `);
