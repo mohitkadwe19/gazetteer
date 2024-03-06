@@ -359,27 +359,16 @@ L.easyButton("fa-cloud", function (btn, map) {
                 result.weatherData.main.temp
               )}°C`;
               description.innerHTML = `${result.weatherData.weather[0].description}`; // Update weather description HTML
-              humidity.innerHTML = `${result.weatherData.main.humidity}%`; // Update humidity HTML
-              wind_speed.innerHTML = `${result.weatherData.wind.speed}Km/H`; // Update wind speed HTML
-              switch (
-                result.weatherData.weather[0].main // Switch based on weather main
-              ) {
-                case "Clouds":
-                  weather_img.src = "assets/Clouds.png"; // Update weather image for clouds
-                  break;
-                case "Clear":
-                  weather_img.src = "assets/Clear.png"; // Update weather image for clear sky
-                  break;
-                case "Rain":
-                  weather_img.src = "assets/Rain.png"; // Update weather image for rain
-                  break;
-                case "Mist":
-                  weather_img.src = "assets/Mist.png"; // Update weather image for mist
-                  break;
-                case "Snow":
-                  weather_img.src = "assets/Snow.png"; // Update weather image for snow
-                  break;
-              }
+              humidity.innerHTML = `${Math.round(
+                result.weatherData.main.humidity
+              )}%`; // Update humidity HTML
+              wind_speed.innerHTML = `${Math.round(
+                result.weatherData.wind.speed
+              )}Km/H`; // Update wind speed HTML
+
+              weather_img.src = `assets/${updateWeatherImage(
+                result.weatherData.weather[0].main
+              )}`; // Update weather image
               // Send a GET request to ./php/openWeatherForcast.php for weather forecast data
               $.ajax({
                 url: "./php/openWeatherForcast.php", // PHP endpoint URL
@@ -397,14 +386,18 @@ L.easyButton("fa-cloud", function (btn, map) {
                     <div class="row mt-5">
                     <div class="col-6">
                       <p>Tomorrow</p>
-                      <img src="assets/${result.weatherForcast.daily[1].weather[0].main.toLowerCase()}.png" alt="weather icon" class="weather-icon">
+                      <img src="assets/${updateWeatherImage(
+                        result.weatherForcast.daily[1].weather[0].main
+                      )}" alt="weather icon" class="weather-icon">
                       <p class="weather-description mt-2">${
                         result.weatherForcast.daily[1].weather[0].description
                       }</p>
                     </div>
                     <div class="col-6">
                       <p>Day After Tomorrow</p>
-                      <img src="assets/${result.weatherForcast.daily[2].weather[0].main.toLowerCase()}.png" alt="weather icon" class="weather-icon">
+                      <img src="assets/${updateWeatherImage(
+                        result.weatherForcast.daily[2].weather[0].main
+                      )}" alt="weather icon" class="weather-icon">
                       <p class="weather-description mt-2">${
                         result.weatherForcast.daily[2].weather[0].description
                       }</p>
@@ -532,8 +525,8 @@ L.easyButton("fa-book", function (btn, map) {
                 type: "GET", // HTTP GET method
                 dataType: "json", // Expected data type
                 data: {
-                  lat: capitalCityLat, // Latitude parameter
-                  lng: capitalCityLon, // Longitude parameter
+                  lat: Math.abs(capitalCityLat), // Latitude parameter
+                  lng: Math.abs(capitalCityLon), // Longitude parameter
                 },
                 success: function (result) {
                   // Success callback function
@@ -924,4 +917,32 @@ function exchangeRateUSDToCurrentCurrency() {
       console.error(textStatus, errorThrown);
     },
   });
+}
+
+function updateWeatherImage(weather) {
+  let imagePath;
+  switch (weather) {
+    case "Clouds":
+      imagePath = "Clouds.png";
+      break;
+    case "Clear":
+      imagePath = "Clear.png";
+      break;
+    case "Rain":
+      imagePath = "Rain.png";
+      break;
+    case "Mist":
+      imagePath = "Mist.png";
+      break;
+    case "Snow":
+      imagePath = "Snow.png";
+      break;
+    case "Haze":
+      imagePath = "Haze.png";
+      break;
+    default:
+      // Handle default case if needed
+      break;
+  }
+  return imagePath;
 }
