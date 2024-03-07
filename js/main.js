@@ -219,7 +219,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td class="text-nowrap">Capital city</td>
 
-                <td id="capitalCity" class="text-end">${getCountryInfo.data.geonames[0].capital}</td>
+                <td id="capitalCity" class="text-end">${
+                  getCountryInfo.data.geonames[0].capital
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -228,7 +230,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td>Continent</td>
 
-                <td id="continent" class="text-end">${getCountryInfo.data.geonames[0].continent}</td>
+                <td id="continent" class="text-end">${
+                  getCountryInfo.data.geonames[0].continent
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -237,7 +241,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td>Languages</td>
 
-                <td id="languages" class="text-end">${getCountryInfo.data.geonames[0].languages}</td>
+                <td id="languages" class="text-end">${
+                  getCountryInfo.data.geonames[0].languages
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -246,7 +252,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td>Currency</td>
 
-                <td id="currency" class="text-end">${getCountryInfo.data.geonames[0].currencyCode}</td>
+                <td id="currency" class="text-end">${
+                  getCountryInfo.data.geonames[0].currencyCode
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -255,7 +263,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td class="text-nowrap">ISO alpha 3</td>
 
-                <td id="isoAlpha3" class="text-end">${getCountryInfo.data.geonames[0].isoAlpha3}</td>
+                <td id="isoAlpha3" class="text-end">${
+                  getCountryInfo.data.geonames[0].isoAlpha3
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -264,7 +274,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td>Population</td>
 
-                <td id="population" class="text-end">${getCountryInfo.data.geonames[0].population}</td>
+                <td id="population" class="text-end">${Number(
+                  getCountryInfo.data.geonames[0].population
+                ).toLocaleString()}</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -273,7 +285,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td class="text-nowrap">Area (km<sup>2</sup>)</td>
 
-                <td id="areaInSqKm" class="text-end">${getCountryInfo.data.geonames[0].areaInSqKm}</td>
+                <td id="areaInSqKm" class="text-end">${
+                  getCountryInfo.data.geonames[0].areaInSqKm
+                }</td>
               </tr>
               <tr>
                 <td class="text-center">
@@ -282,7 +296,9 @@ L.easyButton("fa-globe", function (btn, map) {
 
                 <td class="text-nowrap">Postal code format</td>
 
-                <td id="postalCodeFormat" class="text-end">${getCountryInfo.data.geonames[0].postalCodeFormat}</td>
+                <td id="postalCodeFormat" class="text-end">${
+                  getCountryInfo.data.geonames[0].postalCodeFormat
+                }</td>
               </tr>
             </table>
               `);
